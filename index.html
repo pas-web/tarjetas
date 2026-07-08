@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mazo de Reflexión · Revisión — Cosecha Colectiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --crema:#FAF5EC; --tinta:#3D2E14;
+    --fin-bg:#FBEFD3; --fin-ink:#7A5600;
+    --com-bg:#F7E8EC; --com-ink:#720E2A;
+    --vida-bg:#FBE6D2; --vida-ink:#9C4A00;
+    --ambar:#F1BB3A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--crema);font-family:'Nunito Sans',system-ui,sans-serif;color:var(--tinta);}
+  header{padding:26px 20px 18px;text-align:center;}
+  header h1{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:26px;color:var(--com-ink);line-height:1.15;}
+  header p{font-size:14.5px;font-weight:600;color:#8a7a5c;margin-top:4px;}
+  .quien{display:inline-block;margin-top:10px;font-size:13.5px;font-weight:700;background:#fff;border:1.5px solid #e4d9c4;border-radius:999px;padding:6px 14px;color:#7A5600;}
+  .progreso{max-width:560px;margin:14px auto 0;padding:0 20px;}
+  .barra{height:10px;background:#eee3cd;border-radius:999px;overflow:hidden;}
+  .barra div{height:100%;width:0%;background:var(--ambar);border-radius:999px;transition:width .4s;}
+  .progreso span{display:block;font-size:12.5px;font-weight:700;color:#8a7a5c;margin-top:6px;text-align:center;}
+  .pendientes{display:none;margin:10px auto 0;text-align:center;}
+  .pendientes button{font:700 13px 'Nunito Sans';background:#fff;border:1.5px solid var(--com-ink);color:var(--com-ink);border-radius:999px;padding:7px 16px;}
+
+  section{max-width:620px;margin:26px auto 0;padding:0 16px;}
+  .cab{border-radius:16px;padding:16px 18px;margin-bottom:14px;}
+  .cab h2{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:20px;line-height:1.1;}
+  .cab span{font-size:13px;font-weight:700;opacity:.75;}
+  .fin .cab{background:var(--fin-bg);} .fin .cab h2,.fin .cab span{color:var(--fin-ink);}
+  .com .cab{background:var(--com-bg);} .com .cab h2,.com .cab span{color:var(--com-ink);}
+  .vida .cab{background:var(--vida-bg);} .vida .cab h2,.vida .cab span{color:var(--vida-ink);}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .mini{position:relative;border:none;background:none;text-align:left;cursor:pointer;}
+  .mini img{width:100%;border-radius:12px;display:block;box-shadow:0 2px 8px rgba(61,46,20,.14);}
+  .mini .tit{font-size:12px;font-weight:700;line-height:1.25;margin-top:6px;color:#5c4a2a;}
+  .mini .num{font-size:10.5px;font-weight:800;color:#a8946e;}
+  .estado{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:12px;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+  .estado.ok{display:flex;background:#4a7c3f;}
+  .estado.ajuste{display:flex;background:#b3541e;}
+  .estado.borrador{display:flex;background:#a8946e;}
+
+  /* Visor */
+  #visor{position:fixed;inset:0;background:rgba(43,31,15,.92);display:none;flex-direction:column;align-items:center;z-index:50;overflow-y:auto;padding:14px 0 30px;}
+  #visor.abierto{display:flex;}
+  .visor-top{width:100%;max-width:520px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;margin-bottom:10px;}
+  .visor-top span{color:#e9dcc2;font-weight:800;font-size:14px;}
+  .visor-top button{background:none;border:none;color:#e9dcc2;font-size:26px;line-height:1;cursor:pointer;}
+  .escena{perspective:1400px;width:min(72vw,340px);}
+  .carta{position:relative;width:100%;aspect-ratio:9/16;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.4,.1,.2,1);cursor:pointer;}
+  .carta.girada{transform:rotateY(180deg);}
+  .carta img{position:absolute;inset:0;width:100%;height:100%;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 34px rgba(0,0,0,.45);}
+  .carta img.reverso{transform:rotateY(180deg);}
+  .pista{color:#cbb98f;font-size:12.5px;font-weight:700;margin-top:10px;text-align:center;}
+  .navegacion{display:flex;gap:14px;align-items:center;margin-top:12px;}
+  .navegacion button{width:46px;height:46px;border-radius:50%;border:none;background:#e9dcc2;color:#5c4a2a;font-size:20px;font-weight:800;cursor:pointer;}
+  .navegacion button:disabled{opacity:.35;}
+
+  .retro{width:100%;max-width:520px;background:#fff;border-radius:18px 18px 0 0;margin-top:16px;padding:18px 18px 22px;}
+  .retro h3{font-family:'Baloo 2',sans-serif;font-size:17px;color:var(--tinta);margin-bottom:10px;}
+  .veredictos{display:flex;gap:10px;margin-bottom:12px;}
+  .veredictos button{flex:1;padding:12px 8px;border-radius:12px;border:2px solid #e4d9c4;background:#fff;font:800 14px 'Nunito Sans';color:#7a6b4d;cursor:pointer;}
+  .veredictos button.activo.si{border-color:#4a7c3f;background:#eef5ec;color:#3c6633;}
+  .veredictos button.activo.no{border-color:#b3541e;background:#fbf0e8;color:#96461a;}
+  textarea{width:100%;min-height:82px;border:2px solid #e4d9c4;border-radius:12px;padding:10px 12px;font:600 15px/1.45 'Nunito Sans';color:var(--tinta);resize:vertical;}
+  textarea:focus{outline:none;border-color:var(--ambar);}
+  .guardar{width:100%;margin-top:12px;padding:14px;border:none;border-radius:12px;background:var(--com-ink);color:#fff;font:800 16px 'Nunito Sans';cursor:pointer;}
+  .guardar:disabled{opacity:.55;}
+  .aviso{font-size:12.5px;font-weight:700;color:#8a7a5c;text-align:center;margin-top:8px;min-height:16px;}
+
+  footer{max-width:620px;margin:34px auto 0;padding:0 20px 46px;text-align:center;}
+  footer button{font:800 14px 'Nunito Sans';background:#fff;border:2px solid #e4d9c4;border-radius:999px;padding:11px 20px;color:#7a6b4d;cursor:pointer;}
+  footer p{font-size:12px;color:#a8946e;margin-top:14px;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Mazo de Reflexión<br>Cosecha Colectiva</h1>
+  <p>Revisión de las 43 tarjetas · toca una para verla y girarla</p>
+  <span class="quien" id="quien"></span>
+  <div class="progreso"><div class="barra"><div id="barra"></div></div><span id="cuenta"></span></div>
+  <div class="pendientes" id="pendientes"><button onclick="reenviar()">Reenviar respuestas pendientes</button></div>
+</header>
+
+<section class="fin"><div class="cab"><h2>Finanzas y Operación</h2><span>Tarjetas 1 a 14</span></div><div class="grid" id="g-fin"></div></section>
+<section class="com"><div class="cab"><h2>Comunidad y Vínculos</h2><span>Tarjetas 15 a 26</span></div><div class="grid" id="g-com"></div></section>
+<section class="vida"><div class="cab"><h2>Vida y Sentido</h2><span>Tarjetas 27 a 43</span></div><div class="grid" id="g-vida"></div></section>
+
+<footer>
+  <button onclick="copiarResumen()">Copiar resumen de mis comentarios</button>
+  <p>Laboratorio de Desarrollo Rural · UAQ Campus Concá</p>
+</footer>
+
+<div id="visor">
+  <div class="visor-top">
+    <span id="contador"></span>
+    <button onclick="cerrar()" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="escena"><div class="carta" id="carta" onclick="this.classList.toggle('girada')">
+    <img id="imgF" class="frente" alt="Frente de la tarjeta">
+    <img id="imgR" class="reverso" alt="Reverso de la tarjeta">
+  </div></div>
+  <div class="pista">Toca la tarjeta para girarla</div>
+  <div class="navegacion">
+    <button id="prev" onclick="mover(-1)">‹</button>
+    <button id="next" onclick="mover(1)">›</button>
+  </div>
+  <div class="retro">
+    <h3 id="retroTitulo"></h3>
+    <div class="veredictos">
+      <button class="si" id="btnSi" onclick="veredicto('si')">✔ Me gusta así</button>
+      <button class="no" id="btnNo" onclick="veredicto('ajuste')">✎ Necesita ajuste</button>
+    </div>
+    <textarea id="comentario" placeholder="Comentario (opcional): qué cambiarías, qué no se entiende, qué te gustó…"></textarea>
+    <button class="guardar" id="guardar" onclick="guardar()">Guardar y enviar</button>
+    <div class="aviso" id="aviso"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ============ CONFIGURACIÓN ============ */
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzndyiT5FN3HkvvUI9ixwICS5lbYnsh52-Vm7ZTZuM0W066BsfWe-MA6-KVQxUlCSZr/exec"; // termina en /exec
+/* ======================================= */
+
+const CATS = {fin:"Finanzas y Operación", com:"Comunidad y Vínculos", vida:"Vida y Sentido"};
+let actual = 0;
+let respuestas = JSON.parse(localStorage.getItem("mazo_retro")||"{}");
+let revisora = localStorage.getItem("mazo_revisora") || "";
+
+if(!revisora){
+  revisora = (prompt("¿Quién revisa el mazo? Escribe tu nombre:","Mayra")||"Sin nombre").trim();
+  localStorage.setItem("mazo_revisora", revisora);
+}
+document.getElementById("quien").textContent = "Revisa: " + revisora;
+
+function pintarGrids(){
+  ["fin","com","vida"].forEach(c=>document.getElementById("g-"+c).innerHTML="");
+  TARJETAS.forEach((t,i)=>{
+    const r = respuestas[t.n];
+    const estado = r ? (r.enviado ? (r.veredicto==="si"?"ok":"ajuste") : "borrador") : "";
+    const icono = estado==="ok"?"✔":estado==="ajuste"?"✎":estado==="borrador"?"⏳":"";
+    const el = document.createElement("button");
+    el.className = "mini";
+    el.innerHTML = `<img loading="lazy" src="img/${String(t.n).padStart(2,"0")}f.webp" alt="">
+      <div class="estado ${estado}">${icono}</div>
+      <div class="num">Tarjeta ${t.n}</div><div class="tit">${t.titulo}</div>`;
+    el.onclick = ()=>abrir(i);
+    document.getElementById("g-"+t.cat).appendChild(el);
+  });
+  const enviadas = Object.values(respuestas).filter(r=>r.enviado).length;
+  const hechas = Object.keys(respuestas).length;
+  document.getElementById("barra").style.width = (hechas/TARJETAS.length*100)+"%";
+  document.getElementById("cuenta").textContent = `${hechas} de ${TARJETAS.length} revisadas` + (hechas>enviadas? ` · ${hechas-enviadas} sin enviar`:"");
+  document.getElementById("pendientes").style.display = hechas>enviadas ? "block":"none";
+}
+
+function abrir(i){
+  actual = i;
+  const t = TARJETAS[i];
+  const nn = String(t.n).padStart(2,"0");
+  const carta = document.getElementById("carta");
+  carta.classList.remove("girada");
+  document.getElementById("imgF").src = `img/${nn}f.webp`;
+  document.getElementById("imgR").src = `img/${nn}r.webp`;
+  document.getElementById("contador").textContent = `Tarjeta ${t.n} · ${CATS[t.cat]}`;
+  document.getElementById("retroTitulo").textContent = `Tu opinión sobre “${t.titulo}”`;
+  const r = respuestas[t.n] || {};
+  marcarVeredicto(r.veredicto||null);
+  document.getElementById("comentario").value = r.comentario||"";
+  document.getElementById("aviso").textContent = r.enviado ? "Ya enviaste tu opinión de esta tarjeta; puedes cambiarla." : "";
+  document.getElementById("prev").disabled = i===0;
+  document.getElementById("next").disabled = i===TARJETAS.length-1;
+  document.getElementById("visor").classList.add("abierto");
+  document.body.style.overflow = "hidden";
+}
+function cerrar(){
+  document.getElementById("visor").classList.remove("abierto");
+  document.body.style.overflow = "";
+  pintarGrids();
+}
+function mover(d){ const j = actual + d; if(j>=0 && j<TARJETAS.length) abrir(j); }
+
+let vSel = null;
+function marcarVeredicto(v){
+  vSel = v;
+  document.getElementById("btnSi").classList.toggle("activo", v==="si");
+  document.getElementById("btnNo").classList.toggle("activo", v==="ajuste");
+}
+function veredicto(v){ marcarVeredicto(vSel===v? null : v); }
+
+async function guardar(){
+  const t = TARJETAS[actual];
+  const comentario = document.getElementById("comentario").value.trim();
+  if(!vSel && !comentario){ document.getElementById("aviso").textContent = "Elige una opción o escribe un comentario."; return; }
+  const fila = {
+    fecha: new Date().toISOString(),
+    revisora, tarjeta: t.n, titulo: t.titulo, categoria: CATS[t.cat],
+    veredicto: vSel==="si" ? "Me gusta así" : vSel==="ajuste" ? "Necesita ajuste" : "(sin veredicto)",
+    comentario
+  };
+  respuestas[t.n] = {veredicto:vSel, comentario, enviado:false, fila};
+  localStorage.setItem("mazo_retro", JSON.stringify(respuestas));
+  const btn = document.getElementById("guardar");
+  btn.disabled = true; btn.textContent = "Enviando…";
+  const ok = await enviar(fila);
+  respuestas[t.n].enviado = ok;
+  localStorage.setItem("mazo_retro", JSON.stringify(respuestas));
+  btn.disabled = false; btn.textContent = "Guardar y enviar";
+  document.getElementById("aviso").textContent = ok
+    ? "¡Guardado! Pasando a la siguiente…"
+    : "Se guardó en tu teléfono, pero no se pudo enviar (¿sin señal?). Podrás reenviarla después.";
+  if(ok) setTimeout(()=>{ actual < TARJETAS.length-1 ? mover(1) : cerrar(); }, 700);
+}
+
+async function enviar(fila){
+  if(URL_SCRIPT.startsWith("PEGA_AQUI")) return false;
+  try{
+    await fetch(URL_SCRIPT, {method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(fila)});
+    return true;
+  }catch(e){ return false; }
+}
+
+async function reenviar(){
+  for(const n of Object.keys(respuestas)){
+    const r = respuestas[n];
+    if(!r.enviado && r.fila){ r.enviado = await enviar(r.fila); }
+  }
+  localStorage.setItem("mazo_retro", JSON.stringify(respuestas));
+  pintarGrids();
+}
+
+function copiarResumen(){
+  const lineas = [`Revisión del Mazo — ${revisora}`, ""];
+  TARJETAS.forEach(t=>{
+    const r = respuestas[t.n];
+    if(!r) return;
+    const v = r.veredicto==="si"?"✔ Me gusta así": r.veredicto==="ajuste"?"✎ Necesita ajuste":"—";
+    lineas.push(`Tarjeta ${t.n} (${t.titulo}): ${v}${r.comentario? " — "+r.comentario:""}`);
+  });
+  navigator.clipboard.writeText(lineas.join("\n")).then(()=>alert("Resumen copiado. Pégalo en WhatsApp."));
+}
+
+pintarGrids();
+</script>
+</body>
+</html>
